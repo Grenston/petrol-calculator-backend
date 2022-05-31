@@ -18,6 +18,7 @@ build/
 docs/_build/
 .vscode
 pyvenv.cfg
+Scripts/
 
 # Coverage reports
 htmlcov/
