@@ -74,7 +74,9 @@ def roundup(x):
 app = Flask(__name__)
 @app.route('/')
 def petrol_price_intro():
-    response = {'message':'Call url/get-cost to get the cost. Provide values for distance, mileage and state. Example url/get-cost?distance=400&mileage=15&state=Kerala'}
+    all_state_prices = get_all_state_prices()
+    response = {'message':'Call url/get-cost to get the cost. Provide values for distance, mileage and state. Example url/get-cost?distance=400&mileage=15&state=Kerala',
+                'availableStates': list(all_state_prices.keys())}
     return jsonify(response)
 
 @app.route('/get-cost')
@@ -85,7 +87,7 @@ def petrol():
     state_name = request.args.get('state', default = 'Kerala', type = str)
     if all_state_prices.get(state_name, -1) == -1:
         response = {'message':'Provide proper values for state',
-                    'availableValues': list(all_state_prices.keys())}
+                    'availableStates': list(all_state_prices.keys())}
         return jsonify(response)
     else:
         price_per_litre = all_state_prices[state_name]
