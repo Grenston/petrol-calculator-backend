@@ -57,7 +57,7 @@ def get_all_state_prices():
         cols = rows[i].findAll('td')
         state = cols[0].find('a')
         petrol_price = cols[1]
-        key_value = state.contents[0]
+        key_value = state.contents[0].replace(' ','')
         value = float(petrol_price.contents[0].split(' ')[0])
         petrol_price_dict[key_value]= value
         i=i+1
@@ -83,21 +83,25 @@ def petrol():
     total_distance = request.args.get('distance', default = 0.0, type = float)
     avg_mileage = request.args.get('mileage', default = 0.0, type = float)
     state_name = request.args.get('state', default = 'Kerala', type = str)
-    price_per_litre = all_state_prices[state_name]
-
-    if total_distance <= 0.0 or avg_mileage <= 0.0 or state_name not in all_state_prices.keys():
-        response = {'message':'Provide proper values for distance and mileage and state'}
+    if all_state_prices.get(state_name, -1) == -1:
+        response = {'message':'Provide proper values for state',
+                    'availableValues': list(all_state_prices.keys())}
         return jsonify(response)
     else:
-        required_petrol, total_petrol_cost = calculate_total_perol_cost(price_per_litre,total_distance,avg_mileage)
-        rounded_petrol_cost = roundup(total_petrol_cost)
+        price_per_litre = all_state_prices[state_name]
+        if total_distance <= 0.0 or avg_mileage <= 0.0:
+            response = {'message':'Provide proper values for distance and mileage'}
+            return jsonify(response)
+        else:
+            required_petrol, total_petrol_cost = calculate_total_perol_cost(price_per_litre,total_distance,avg_mileage)
+            rounded_petrol_cost = roundup(total_petrol_cost)
 
-        response = { 'current_petrol_price': price_per_litre,
-                    'total_petrol_required_in_litres': required_petrol,
-                    'total_petrol_cost': total_petrol_cost,
-                    'total_petrol_cost_rounded': rounded_petrol_cost
-                    }
-        return jsonify(response)
+            response = { 'current_petrol_price': price_per_litre,
+                        'total_petrol_required_in_litres': required_petrol,
+                        'total_petrol_cost': total_petrol_cost,
+                        'total_petrol_cost_rounded': rounded_petrol_cost
+                        }
+            return jsonify(response)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)
