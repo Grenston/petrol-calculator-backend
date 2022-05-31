@@ -6,13 +6,62 @@ import urllib3
 from flask import Flask,jsonify,request
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def get_petrol_price_ernakulam():
-    URL = 'https://www.goodreturns.in/petrol-price-in-ernakulam.html'
+# State values available:
+# --------------------------------
+# AndamanAndNicobar
+# AndhraPradesh
+# ArunachalPradesh
+# Assam
+# Bihar
+# Chandigarh
+# Chhatisgarh
+# DadraAndNagarHaveli
+# DamanAndDiu
+# Delhi
+# Goa
+# Gujarat
+# Haryana
+# HimachalPradesh
+# JammuAndKashmir
+# Jharkhand
+# Karnataka
+# Kerala
+# MadhyaPradesh
+# Maharashtra
+# Manipur
+# Meghalaya
+# Mizoram
+# Nagaland
+# Odisha
+# Pondicherry
+# Punjab
+# Rajasthan
+# Sikkim
+# TamilNadu
+# Telangana
+# Tripura
+# UttarPradesh
+# Uttarakhand
+# WestBengal
+
+def get_all_state_prices():
+    URL = 'https://www.ndtv.com/fuel-prices/petrol-price-in-all-state'
     page = requests.get(URL, verify=False)
     soup = BeautifulSoup(page.content, "html.parser")
-    petrol_price_block = soup.find("div", class_="fuel-block-details").prettify()
-    petrol_price_ernakulam = float(petrol_price_block.split('\n')[2].strip())    
-    return petrol_price_ernakulam
+    table = soup.find("table")
+    table_body = table.find("tbody")
+    rows = table_body.findAll('tr')
+    petrol_price_dict = {}
+    i = 1
+    while i<len(rows):
+        cols = rows[i].findAll('td')
+        state = cols[0].find('a')
+        petrol_price = cols[1]
+        key_value = state.contents[0]
+        value = float(petrol_price.contents[0].split(' ')[0])
+        petrol_price_dict[key_value]= value
+        i=i+1
+    return petrol_price_dict
 
 def calculate_total_perol_cost(price_per_litre, total_distance, avg_mileage):
     required_petrol = total_distance/avg_mileage
@@ -27,19 +76,23 @@ app = Flask(__name__)
 def petrol_price_intro():
     response = {'message':'Call url/get-cost to get the cost. Provide values for distance and mileage. Example url/get-cost?distance=400&mileage=15'}
     return jsonify(response)
+
 @app.route('/get-cost')
 def petrol():
-    petrol_price_ernakulam = get_petrol_price_ernakulam()
+    all_state_prices = get_all_state_prices()
     total_distance = request.args.get('distance', default = 0.0, type = float)
     avg_mileage = request.args.get('mileage', default = 0.0, type = float)
+    state_name = request.args.get('state', default = 'Kerala', type = str)
+    price_per_litre = all_state_prices[state_name]
+
     if total_distance <= 0.0 or avg_mileage <= 0.0:
         response = {'message':'Provide proper values for distance and mileage'}
         return jsonify(response)
     else:
-        required_petrol, total_petrol_cost = calculate_total_perol_cost(petrol_price_ernakulam,total_distance,avg_mileage)
+        required_petrol, total_petrol_cost = calculate_total_perol_cost(price_per_litre,total_distance,avg_mileage)
         rounded_petrol_cost = roundup(total_petrol_cost)
 
-        response = { 'current_petrol_price_ekm': petrol_price_ernakulam,
+        response = { 'current_petrol_price': price_per_litre,
                     'total_petrol_required_in_litres': required_petrol,
                     'total_petrol_cost': total_petrol_cost,
                     'total_petrol_cost_rounded': rounded_petrol_cost
