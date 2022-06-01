@@ -101,7 +101,7 @@ app = Flask(__name__)
 def fuel_price_intro():
     URL = 'https://www.ndtv.com/fuel-prices/petrol-price-in-all-state'
     all_state_prices = get_all_state_prices(URL)
-    response = {'message':'Call url/get-cost to get the cost. Provide values for distance, mileage and state. Example url/get-cost?distance=400&mileage=15&state=Kerala',
+    response = {'message':'Call url/get-cost to get the cost of petrol. Call url/get-cost-diesel to get the cost of diesel. Provide values for distance, mileage and state. Example url/get-cost?distance=400&mileage=15&state=Kerala',
                 'availableStates': list(all_state_prices.keys())}               
     return jsonify(response)
 
