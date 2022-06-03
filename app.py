@@ -74,12 +74,12 @@ def get_response(all_state_prices, total_distance, avg_mileage, state_name, dies
     if all_state_prices.get(state_name, -1) == -1:
         response = {'message':'Provide proper values for state',
                     'availableStates': list(all_state_prices.keys())}
-        return jsonify(response)
+        return jsonify(response), 422
     else:
         price_per_litre = all_state_prices[state_name]
         if total_distance <= 0.0 or avg_mileage <= 0.0:
             response = {'message':'Provide proper values for distance and mileage'}
-            return jsonify(response)
+            return jsonify(response), 422
         else:
             required_fuel, total_fuel_cost = calculate_total_fuel_cost(price_per_litre,total_distance,avg_mileage)
             rounded_fuel_cost = roundup(total_fuel_cost)
