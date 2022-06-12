@@ -49,7 +49,7 @@ jobs:
     needs: build
     environment:
       name: 'Release'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: ${{ steps.site_url.outputs.https_url }}
 
     steps:
       - name: Download artifact from build job
@@ -64,3 +64,12 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          
+      - name: 'Set site URL'
+        id: site_url
+        env:
+          site_url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+        run: |
+          $https_url = ${env:site_url}.replace('http', 'https')
+          Write-Host "URL updated: $https_url"
+          Write-Host "::set-output name=https_url::$( $https_url)"
