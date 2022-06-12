@@ -67,6 +67,7 @@ jobs:
           
       - name: 'Set site URL'
         id: site_url
+        shell: pwsh
         env:
           site_url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
         run: |
